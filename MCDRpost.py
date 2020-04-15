@@ -82,10 +82,13 @@ def checkPlayer(player):
 
 def getOffhandItem(server, player):
     PlayerInfoAPI = server.get_plugin_instance('PlayerInfoAPI')
-    offhandItem = PlayerInfoAPI.getPlayerInfo(server, player, 'Inventory[{Slot:-106b}]')
-    if type(offhandItem) == dict:
-        return offhandItem
-    else:
+    try: 
+        offhandItem = PlayerInfoAPI.getPlayerInfo(server, player, 'Inventory[{Slot:-106b}]')
+        if type(offhandItem) == dict:
+            return offhandItem
+        else:
+            return None
+    except:
         return None
 
 def delOrder(server, id):
@@ -130,7 +133,7 @@ def postItem(server, info):
         server.tell(sender, '* 副手检测不到可寄送的物品，请检查副手')
         return
     else:
-        item = str(itemjson['id']) + str(itemjson['tag']) + ' ' + str(itemjson['Count'])
+        item = str(itemjson.get('id')) + str(itemjson.get('tag', '')) + ' ' + str(itemjson.get('Count', ''))
         postId = getNextId()
         orders[postId] = {
             'time': format_time(),
