@@ -2,14 +2,14 @@
     "players": ["Flyky", "RainbowerWe"],
     "ids": [0, 1, 2],
     "1": {
-        "timestamp": 1586885574,
+        "time": "2020-04-15 21:38:39",
         "sender": "Flyky",
         "receiver": "RainbowerWe",
         "item": "minecraft:diamond_pickaxe{Enchantments: [{lvl: 3 s,id: \"minecraft:unbreaking\"}]}",
         "info": "测试1"
     },
     "2": {
-        "time": 1586885695,
+        "time": "2020-04-15 22:00:39",
         "sender": "Flyky",
         "receiver": "RainbowerWe",
         "item": "",

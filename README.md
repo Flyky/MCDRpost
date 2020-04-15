@@ -3,7 +3,7 @@ A MCDR plugin for post/teleport items
 一个用于邮寄/传送物品的MCDR插件
 
 # install
-将MCDRpost.py放入plugins目录下重载插件即可
+将MCDRpost.py放入plugins目录下重载插件即可  
 *MCDRpost依赖PlayerInfoAPI插件，请先安装PlayerInfoAPI插件*
    
 # Feature
