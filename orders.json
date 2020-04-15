@@ -1,22 +1,18 @@
 {
     "players": ["Flyky", "RainbowerWe"],
     "ids": [0, 1, 2],
-    "orders": [
-        {
-            "id": 1,
-            "timestamp": 1586885574,
-            "sender": "Flyky",
-            "receiver": "RainbowerWe",
-            "item": "",
-            "info": "测试1"
-        },
-        {
-            "id": 2,
-            "timestamp": 1586885695,
-            "sender": "Flyky",
-            "receiver": "RainbowerWe",
-            "item": "",
-            "info": "测试2"
-        }
-    ]
+    "1": {
+        "timestamp": 1586885574,
+        "sender": "Flyky",
+        "receiver": "RainbowerWe",
+        "item": "minecraft:diamond_pickaxe{Enchantments: [{lvl: 3 s,id: \"minecraft:unbreaking\"}]}",
+        "info": "测试1"
+    },
+    "2": {
+        "time": 1586885695,
+        "sender": "Flyky",
+        "receiver": "RainbowerWe",
+        "item": "",
+        "info": "测试2"
+    }
 }
