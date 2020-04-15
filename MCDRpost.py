@@ -20,7 +20,7 @@ import json
 import time
 
 Prefix = '!!po'
-maxPostNum = 5
+maxStorageNum = 5   # 最大存储订单量，设为-1则无限制
 saveDelay = 1
 orders = {
     'players': [],
@@ -36,8 +36,8 @@ helpmsg = '''-------- MCDRpost --------
 §7{0} r§r 列出收件列表
 §7{0} r §6[<单号>]§r 确认收取该单号的物品到副手(收取前将副手清空)§r
 §7{0} pl§r 列出发件(待收取)列表
-§7{0} c §6[<单号>]§r 取消传送物品(收件人还未收件前)，该单号物品退回到副手(取消前将副手清空)§r
-'''.format(Prefix)
+§7{0} c §6[<单号>]§r 取消传送物品(收件人还未收件前)，该单号物品退回到副手(取消前请将副手清空)§r
+------------------'''.format(Prefix)
 
 def getNextId():
     nextid = 1
@@ -176,7 +176,7 @@ def receiveItem(server, info):
         return
     try:
         if not player == orders[orderid]['receiver']:
-            server.tell(player,'* 该订单您非收件人，您无权对其操作，请检查输入')
+            server.tell(player,'* 您非该订单收件人，无权对其操作，请检查输入')
             return
     except KeyError:
         server.tell(player,'* 未查询到该单号，请检查输入')
@@ -185,19 +185,58 @@ def receiveItem(server, info):
     server.tell(player,'* 已成功收取快件 '+orderid+'，物品接收至副手')
     regularSaveOrderJson()
 
+def listOutbox(server, info):
+    listmsg = ''
+    for orderid in orders['ids']:
+        order = orders.get(str(orderid))
+        if not order:
+            continue
+        if order.get('sender') == info.player:
+            listmsg = listmsg+str(orderid)+'  | '+order.get('receiver')+'  | '+order.get('time')+'  | '+order.get('info')+'\n    '
+    if listmsg == '':
+        server.tell(info.player,'* 您当前没有快件订单在中转站~')
+        return
+    listmsg = '''==========================================
+    单号    |   收件人  |   发件时间  |   备注信息
+    {0}
+    -------------------------------------------
+    使用命令 !!po c [单号] 取消快件
+==========================================='''.format(listmsg)
+    server.tell(info.player, listmsg)
+
+def listInbox(server, info):
+    listmsg = ''
+    for orderid in orders['ids']:
+        order = orders.get(str(orderid))
+        if not order:
+            continue
+        if order.get('receiver') == info.player:
+            listmsg = listmsg+str(orderid)+'  | '+order.get('sender')+'  | '+order.get('time')+'  | '+order.get('info')+'\n    '
+    if listmsg == '':
+        server.tell(info.player,'* 您当前没有待收快件~')
+        return
+    listmsg = '''==========================================
+    单号    |   发件人  |   发件时间  |   备注信息
+    {0}
+    -------------------------------------------
+    使用命令 !!po r [单号] 来接收快件物品
+==========================================='''.format(listmsg)
+    server.tell(info.player, listmsg)
+
+
 def on_info(server, info):
     if info.is_user:
-        if info.content == '!!po':
+        if info.content == Prefix:
             server.reply(info, helpmsg)
-        elif info.content.startswith('!!po p '):
+        elif info.content.startswith(Prefix+' p '):
             postItem(server, info)
-        elif info.content == '!!po pl':
-            pass
-        elif info.content.startswith('!!po r '):
-            pass
-        elif info.content == '!!po rl':
-            pass
-        elif info.content.startswith('!!po c '):
+        elif info.content == Prefix+' pl':
+            listOutbox(server, info)
+        elif info.content.startswith(Prefix+' r '):
+            receiveItem(server, info)
+        elif info.content == Prefix+' rl':
+            listInbox(server, info)
+        elif info.content.startswith(Prefix+' c '):
             cancelOrder(server, info)
 
 def on_load(server, old_module):
@@ -205,9 +244,6 @@ def on_load(server, old_module):
 
 def on_server_startup(server):
     loadOrdersJson()
-
-def on_server_stop(server):
-    saveOrdersJson()
 
 def on_player_joined(server, player):
     global orders

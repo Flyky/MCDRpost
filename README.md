@@ -4,13 +4,16 @@ A MCDR plugin for post/teleport items
 [-> MCDReforged <-](https://github.com/Fallen-Breath/MCDReforged)
 
 # install
-将MCDRpost.py放入plugins目录下重载插件即可  
+将`MCDRpost.py`放入plugins目录下重载插件即可  
 *MCDRpost依赖[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)，请先安装[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)*
    
 # Feature
 **使用该插件可以将副手的物品发送给别的玩家**  
 也可以发送给离线玩家（但该玩家必须曾经进过服务器）  
 *不可以发送给自己哦~*  
+- 玩家发出物品后，物品(订单)将会存放在【中转站】
+- 需要收件人收取订单才能收到物品，之后中转站会删除该订单
+- 还未查收的订单可以取消，物品会从中转站退回，并删除订单
 ## usage
 - `!!po` 显示帮助信息
 - `!!po p [收件人id] [备注]` 将副手物品发送给[收件人]，[备注]为可选项
