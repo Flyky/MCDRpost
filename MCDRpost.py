@@ -1,21 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# nextid由GetNextId方法获取
-# 发件/收件/取消后将ids列表排序后，将nextid设为缺少的值或+1
-# 当len(ids)%saveDelay==0时保存orders.json
-# 服务器开启时读取orders.json,若无该文件则创建
-# 服务器关闭时保存orders.json
-#
-# data get entity @s Inventory[{Slot: -106b}]
-# replaceitem entity @s weapon.offhand minecraft:diamond_pickaxe{Enchantments: [{lvl: 3 s,id: "minecraft:unbreaking"}]}
-
-# PlayerInfoAPI = server.get_plugin_instance('PlayerInfoAPI')
-# inventory = PlayerInfoAPI.getPlayerInfo(server, info.player, 'Inventory[{Slot:-106b}]')
-# if type(inventory) == dict:
-#     server.logger.info(inventory)
-
-# {'Slot': -106, 'id': 'minecraft:diamond_pickaxe', 'Count': 1, 'tag': {'Damage': 0, 'Enchantments': [{'lvl': 3, 'id': 'minecraft:unbreaking'}]}}
-
 import json
 import time
 
@@ -33,7 +17,7 @@ helpmsg = '''-------- MCDRpost --------
 §a『命令说明』§r
 §7{0}§r 显示帮助信息
 §7{0} p §e[<收件人id>] §b[<备注>] §r 将副手物品发送给§e[收件人]§r。§b[备注]§r为可选项
-§7{0} r§r 列出收件列表
+§7{0} rl§r 列出收件列表
 §7{0} r §6[<单号>]§r 确认收取该单号的物品到副手(收取前将副手清空)§r
 §7{0} pl§r 列出发件(待收取)列表
 §7{0} c §6[<单号>]§r 取消传送物品(收件人还未收件前)，该单号物品退回到副手(取消前请将副手清空)§r
@@ -80,6 +64,21 @@ def checkPlayer(player):
             return True
     return False
 
+def checkStorage(player):
+    num = 0
+    if maxStorageNum < 0:
+        return True
+    for orderid in orders['ids']:
+        try:
+            order = orders[str(orderid)]
+        except:
+            continue
+        if order.get('sender') == player:
+            num += 1
+            if num >= maxStorageNum:
+                return False
+    return True
+
 def getOffhandItem(server, player):
     PlayerInfoAPI = server.get_plugin_instance('PlayerInfoAPI')
     try: 
@@ -116,6 +115,9 @@ def postItem(server, info):
     itemjson = getOffhandItem(server, sender)
     infomsg = "无备注信息"
     postId = None
+    if not checkStorage(sender):
+        server.tell(sender, '* 您当前存放在中转站的订单数已达到了上限:'+str(maxStorageNum)+'\n命令 !!po pl 查看您在中转站内的发件订单')
+        return
     if len(info.content.split()) >= 3:
         receiver = info.content.split()[2]
     else:
