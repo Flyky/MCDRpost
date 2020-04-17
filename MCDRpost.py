@@ -79,6 +79,16 @@ def checkStorage(player):
                 return False
     return True
 
+def checkOrderOnPlayerJoin(player):
+    for orderid in orders['ids']:
+        try:
+            order = orders[str(orderid)]
+        except:
+            continue
+        if order.get('receiver') == player:
+            return True
+    return False
+
 def getOffhandItem(server, player):
     PlayerInfoAPI = server.get_plugin_instance('PlayerInfoAPI')
     try: 
@@ -103,6 +113,7 @@ def getItem(server, player, orderid):
     if not getOffhandItem(server, player):
         order = orders.get(orderid, -1)
         server.execute('replaceitem entity '+ player + ' weapon.offhand ' + str(order['item']))
+        server.execute('execute at ' + player + ' run playsound minecraft:entity.bat.takeoff player ' + player)
         delOrder(server, orderid)
         return True
     else:
@@ -146,7 +157,9 @@ def postItem(server, info):
         }
         server.execute('replaceitem entity '+sender+' weapon.offhand minecraft:air')
         server.tell(sender, '* 物品存放于中转站，等待对方接收\n* 使用 !!po pl 可以查看还未被查收的发件列表')
+        server.execute('execute at ' + sender + ' run playsound minecraft:entity.arrow.hit_player player ' + sender)
         server.tell(receiver, '[MCDRpost] 您有一件新快件，命令 !!po rl 查看收件箱\n* 命令 !!po r '+postId+' 直接收取该快件')
+        server.execute('execute at ' + receiver + ' run playsound minecraft:entity.arrow.shoot player ' + receiver)
         regularSaveOrderJson()
 
 def cancelOrder(server, info):
@@ -178,15 +191,16 @@ def receiveItem(server, info):
         orderid = info.content.split()[2]
     else:
         server.tell(player,'* 未输入需要取消的单号，!!po 可查看帮助信息')
-        return
+        return False
     try:
         if not player == orders[orderid]['receiver']:
             server.tell(player,'* 您非该订单收件人，无权对其操作，请检查输入')
-            return
+            return False
     except KeyError:
         server.tell(player,'* 未查询到该单号，请检查输入')
-        return
-    getItem(server, player, orderid)
+        return False
+    if not getItem(server, player, orderid):
+        return False
     server.tell(player,'* 已成功收取快件 '+orderid+'，物品接收至副手')
     regularSaveOrderJson()
 
@@ -256,6 +270,9 @@ def on_player_joined(server, player):
     for id in orders['players']:
         if id == player:
             flag = False
+            if checkOrderOnPlayerJoin(player):
+                server.tell(player, "[MCDRpost] 您有待查收的快件~ 命令 !!po rl 查看详情")
+                server.execute('execute at ' + player + ' run playsound minecraft:entity.arrow.hit_player player ' + player)
     if flag:
         orders['players'].append(player)
         server.logger.info('[MCDRpost] 已登记玩家 '+player)
