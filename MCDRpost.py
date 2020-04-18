@@ -48,6 +48,7 @@ def saveOrdersJson():
     try:
         with open(OrderJsonFile, 'w') as f:
             json.dump(orders, f, indent=4)
+        server.logger.info("[MCDRpost] Saved OrderJsonFile")
     except:
         return
 
@@ -290,12 +291,10 @@ def on_info(server, info):
 
 def on_load(server, old_module):
     loadOrdersJson()
+    server.add_help_message(Prefix, "传送/收寄副手物品")
 
 def on_server_startup(server):
     loadOrdersJson()
-
-def on_server_stop(server):
-    saveOrdersJson()
 
 def on_player_joined(server, player):
     global orders
