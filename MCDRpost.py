@@ -12,16 +12,16 @@ orders = {
 }
 OrderJsonFile = './plugins/PostOrders.json'
 
-helpmsg = '''-------- MCDRpost --------
+helpmsg = '''--------- MCDRpost ---------
 一个用于邮寄/传送物品的MCDR插件
 §a『命令说明』§r
-§7{0}§r 显示帮助信息
-§7{0} p §e[<收件人id>] §b[<备注>] §r 将副手物品发送给§e[收件人]§r。§b[备注]§r为可选项
-§7{0} rl§r 列出收件列表
-§7{0} r §6[<单号>]§r 确认收取该单号的物品到副手(收取前将副手清空)§r
-§7{0} pl§r 列出发件(待收取)列表
-§7{0} c §6[<单号>]§r 取消传送物品(收件人还未收件前)，该单号物品退回到副手(取消前请将副手清空)§r
-------------------'''.format(Prefix)
+§7{0}§r  | 显示帮助信息
+§7{0} p §e[<收件人id>] §b[<备注>] §r | 将副手物品发送给§e[收件人]§r。§b[备注]§r为可选项
+§7{0} rl§r | 列出收件列表
+§7{0} r §6[<单号>]§r | 确认收取该单号的物品到副手(收取前将副手清空)§r
+§7{0} pl§r | 列出发件(待收取)列表
+§7{0} c §6[<单号>]§r | 取消传送物品(收件人未收件前)，该单号物品退回到副手(取消前请将副手清空)§r
+-----------------------'''.format(Prefix)
 
 def getNextId():
     nextid = 1
@@ -242,6 +242,32 @@ def listInbox(server, info):
 ==========================================='''.format(listmsg)
     server.tell(info.player, listmsg)
 
+def listOrders(server, info):
+    # !!po ls orders
+    listmsg = ''
+    if server.get_permission_level(info) < 2:
+        listmsg = '* 抱歉，您没有权限使用该命令'
+    else:
+        for orderid in orders['ids']:
+            order = orders.get(str(orderid))
+            if not order:
+                continue
+            listmsg = listmsg+str(orderid)+'  | '+order.get('sender')+'  | '+order.get('receiver')+'  | '+order.get('time')+'  | '+order.get('info')+'\n    '
+        if listmsg == '':
+            server.reply(info,'* 中转站内无任何快件~')
+            return
+        listmsg = '''==========================================
+ 单号    |   发件人  |   收件人  |   发件时间  |   备注信息
+{0}
+==========================================='''.format(listmsg)
+    server.reply(info, listmsg)
+
+def listPlayers(server, info):
+    # !!po ls players
+    if server.get_permission_level(info) < 2:
+        server.tell(info.player, '* 抱歉，您没有权限使用该命令')
+        return
+    server.reply(info, '[MCDRpost] 可寄送的注册玩家列表：\n' + str(orders.get('players')))
 
 def on_info(server, info):
     if info.is_user:
@@ -257,12 +283,19 @@ def on_info(server, info):
             listInbox(server, info)
         elif info.content.startswith(Prefix+' c '):
             cancelOrder(server, info)
+        elif info.content == Prefix+' ls orders':
+            listOrders(server, info)
+        elif info.content == Prefix+' ls players':
+            listPlayers(server, info)
 
 def on_load(server, old_module):
     loadOrdersJson()
 
 def on_server_startup(server):
     loadOrdersJson()
+
+def on_server_stop(server):
+    saveOrdersJson()
 
 def on_player_joined(server, player):
     global orders
@@ -271,6 +304,7 @@ def on_player_joined(server, player):
         if id == player:
             flag = False
             if checkOrderOnPlayerJoin(player):
+                time.sleep(3)   # 延迟 3s 后再提示，防止更多进服消息混杂而看不到提示
                 server.tell(player, "[MCDRpost] 您有待查收的快件~ 命令 !!po rl 查看详情")
                 server.execute('execute at ' + player + ' run playsound minecraft:entity.arrow.hit_player player ' + player)
     if flag:
