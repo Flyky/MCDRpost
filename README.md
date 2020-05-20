@@ -35,6 +35,10 @@ A MCDR plugin for post/teleport items
 - `!!po r [单号]` 确认收取该单号的物品到副手(收取前将副手清空)
 - `!!po pl` 列出发件(待收取)列表，包括[收件人]，[寄件时间]，[备注消息]和[单号]
 - `!!po c [单号]` 取消传送物品(收件人还未收件前)，该单号物品退回到副手(取消前将副手清空)
+- `!!po ls players` 查看可被寄送的注册玩家列表 
+- `!!po ls orders` 查看当前中转站内所有订单 [helper以上权限可用]
+- `!!po player add [玩家id]` 手动注册玩家到可寄送玩家列表 [admin以上权限可用]
+- `!!po player remove [玩家id]` 删除某注册的玩家 [admin以上权限可用]
   
 *上面命令中的`r`表示`receive`，`p`表示`post`，`l`表示`list`，`c`表示`cancel`*  
 
@@ -43,6 +47,10 @@ A MCDR plugin for post/teleport items
 - 可能会有部分带有特殊复杂NBT标签的物品无法传送，会提示检测不到可传送的物品，所以尝试一下即可
 - **切勿传送原版非法堆叠数的物品**，例如使用carpet地毯堆叠的空潜影盒，会导致该物品无法接收
   
+## known issues
+因引用的`PlayerInfoAPI插件`在查询不到数据时的响应时间较长(大约数秒)，即在收寄时的检测副手为空的响应时间较长  
+所以在收寄过程时可能需要稍作等待
+
 # pics
 
 ![po rl](https://s1.ax1x.com/2020/04/16/Jk0WnJ.png)  
