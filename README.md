@@ -48,9 +48,9 @@ A MCDR plugin for post/teleport items
 - **切勿传送原版非法堆叠数的物品**，例如使用carpet地毯堆叠的空潜影盒，会导致该物品无法接收
   
 ## known issues
-因引用的`PlayerInfoAPI插件`在查询不到数据时的响应时间较长(大约数秒)，即在收寄时的检测副手为空的响应时间较长  
+因引用的`PlayerInfoAPI插件`在查询不到数据时的默认响应时间timeout较长，即在收寄时的检测副手为空的响应时间较长  
 所以在收寄过程时可能需要稍作等待
-**但服务器开启并设置好MCDR可连接的rcon则不会出现此问题**，所以现阶段建议配置rcon
+**但服务器开启并设置好MCDR可连接的rcon则不会出现此问题**，所以建议配置rcon
 
 # pics
 

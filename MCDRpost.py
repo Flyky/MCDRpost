@@ -125,7 +125,7 @@ def checkOrderOnPlayerJoin(player):
 def getOffhandItem(server, player):
     PlayerInfoAPI = server.get_plugin_instance('PlayerInfoAPI')
     try: 
-        offhandItem = PlayerInfoAPI.getPlayerInfo(server, player, 'Inventory[{Slot:-106b}]')
+        offhandItem = PlayerInfoAPI.getPlayerInfo(server, player, 'Inventory[{Slot:-106b}]', 3)
         if type(offhandItem) == dict:
             return offhandItem
         else:
