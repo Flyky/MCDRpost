@@ -5,7 +5,20 @@ import time
 import os
 import shutil
 
-from utils.rtext import *
+from mcdreforged.api.rtext import *
+
+PLUGIN_METADATA = {
+    'id': 'mcdrpost',
+    'version': '1.0.0',
+    'name': 'MCDRpost',  # RText component is allowed
+    'description': 'A MCDR plugin for post/teleport items',  # RText component is allowed
+    'author': 'Flyky',
+    'link': 'https://github.com/Flyky/MCDRpost',
+    'dependencies': {
+        'mcdreforged': '>=1.0.0',
+        'playerinfoapi': '*'
+    }
+}
 
 Prefix = '!!po'
 maxStorageNum = 5   # 最大存储订单量，设为-1则无限制
@@ -367,7 +380,7 @@ def on_info(server, info):
 
 def on_load(server, old_module):
     loadOrdersJson(server)
-    server.add_help_message(Prefix, "传送/收寄副手物品")
+    server.register_help_message(Prefix, "传送/收寄副手物品")
 
 def on_server_startup(server):
     loadOrdersJson(server)
