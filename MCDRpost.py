@@ -377,6 +377,7 @@ def on_info(server, info):
             addPlayerToList(server, info)
         elif info.content.startswith(Prefix+' player remove '):
             removePlayerInList(server, info)
+    info.cancel_send_to_server()
 
 def on_load(server, old_module):
     loadOrdersJson(server)

@@ -2,7 +2,7 @@
 
 A MCDR plugin for post/teleport items  
 一个用于邮寄/传送物品的MCDR插件  
-*1.0.0版本后支持MCDR1.0+*
+*1.0.0版本后支持MCDR1.0+*  
 [-> MCDReforged <-](https://github.com/Fallen-Breath/MCDReforged)
 
 ![MCDRpost help](https://s1.ax1x.com/2020/04/16/Jk8ysP.png)
