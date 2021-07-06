@@ -2,6 +2,7 @@
 
 A MCDR plugin for post/teleport items  
 一个用于邮寄/传送物品的MCDR插件  
+*1.0.0版本后支持MCDR1.0+*
 [-> MCDReforged <-](https://github.com/Fallen-Breath/MCDReforged)
 
 ![MCDRpost help](https://s1.ax1x.com/2020/04/16/Jk8ysP.png)
@@ -9,8 +10,8 @@ A MCDR plugin for post/teleport items
 # Install
 
 将`MCDRpost.py`放入plugins目录下重载插件即可  
-*MCDRpost依赖[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)，请先安装[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)*
-   
+*MCDRpost(ver1.0.0+)依赖[Minecraft Data API插件](https://github.com/MCDReforged/MinecraftDataAPI)，请先安装[Minecraft Data API插件](https://github.com/MCDReforged/MinecraftDataAPI)*  
+*旧版本依赖[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)*  
 # Feature
 
 **使用该插件可以将副手的物品发送给别的玩家**  

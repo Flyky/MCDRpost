@@ -16,7 +16,7 @@ PLUGIN_METADATA = {
     'link': 'https://github.com/Flyky/MCDRpost',
     'dependencies': {
         'mcdreforged': '>=1.0.0',
-        'playerinfoapi': '*'
+        'minecraft_data_api': '*',
     }
 }
 
@@ -136,9 +136,9 @@ def checkOrderOnPlayerJoin(player):
     return False
 
 def getOffhandItem(server, player):
-    PlayerInfoAPI = server.get_plugin_instance('PlayerInfoAPI')
+    MCDataAPI = server.get_plugin_instance('minecraft_data_api')
     try: 
-        offhandItem = PlayerInfoAPI.getPlayerInfo(server, player, 'Inventory[{Slot:-106b}]', 3)
+        offhandItem = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]', 3)
         if type(offhandItem) == dict:
             return offhandItem
         else:
@@ -385,7 +385,7 @@ def on_load(server, old_module):
 def on_server_startup(server):
     loadOrdersJson(server)
 
-def on_player_joined(server, player):
+def on_player_joined(server, player, info):
     global orders
     flag = True
     for id in orders['players']:
