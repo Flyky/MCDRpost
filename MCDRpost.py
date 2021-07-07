@@ -138,12 +138,13 @@ def checkOrderOnPlayerJoin(player):
 def getOffhandItem(server, player):
     MCDataAPI = server.get_plugin_instance('minecraft_data_api')
     try: 
-        offhandItem = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]', 3)
+        offhandItem = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]')
         if type(offhandItem) == dict:
             return offhandItem
         else:
             return None
-    except:
+    except Exception as e:
+        server.logger.info("Error occurred during getOffhandItem" + e.__class__.__name__)
         return None
 
 def delOrder(server, id):
