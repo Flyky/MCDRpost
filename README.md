@@ -1,5 +1,7 @@
 # MCDRpost
 
+*不支持MCDR2.0+，有待未来适配。。。*
+
 A MCDR plugin for post/teleport items  
 一个用于邮寄/传送物品的MCDR插件  
 *1.0.0版本后支持MCDR1.0+*  
