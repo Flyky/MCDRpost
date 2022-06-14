@@ -142,14 +142,14 @@ def getOffhandItem(server, player):
     MCDataAPI = server.get_plugin_instance('minecraft_data_api')
     
     try:
-        offhandItemStr = None
+        offhandItem = None
         if server.is_rcon_running():
             offhandItemStr = server.rcon_query(f'data get entity {player} Inventory[{{Slot:-106b}}]')
+            offhandItem = MCDataAPI.convert_minecraft_json(offhandItemStr)
         else:
-            # server.logger.info("Please config rcon of server correctly.")
-            offhandItemStr = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]')
+            server.logger.info("Please config rcon of server correctly.")
+            offhandItem = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]')
             
-        offhandItem = MCDataAPI.convert_minecraft_json(offhandItemStr)
         if type(offhandItem) == dict:
             return offhandItem
         else:

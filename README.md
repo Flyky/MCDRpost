@@ -10,6 +10,7 @@ A MCDR plugin for post/teleport items
 # Install
 
 将`MCDRpost.py`放入plugins目录下重载插件即可  
+**当前必须使用Rcon获取信息，请一定配置好服务器和MCDR的Rcon**
 *MCDRpost(ver1.0.0+)依赖[Minecraft Data API插件](https://github.com/MCDReforged/MinecraftDataAPI)，请先安装[Minecraft Data API插件](https://github.com/MCDReforged/MinecraftDataAPI)*  
 *旧版本依赖[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)*  
 # Feature
@@ -50,9 +51,10 @@ A MCDR plugin for post/teleport items
 - **切勿传送原版非法堆叠数的物品**，例如使用carpet地毯堆叠的空潜影盒，会导致该物品无法接收
   
 ## known issues
-因引用的`PlayerInfoAPI插件`在查询不到数据时的默认响应时间timeout较长，即在收寄时的检测副手为空的响应时间较长  
-所以在收寄过程时可能需要稍作等待
-**但服务器开启并设置好MCDR可连接的rcon则不会出现此问题**，所以墙裂建议配置rcon
+~~因引用的`PlayerInfoAPI插件`在查询不到数据时的默认响应时间timeout较长，即在收寄时的检测副手为空的响应时间较长  ~~
+~~所以在收寄过程时可能需要稍作等待~~
+**~~但服务器开启并设置好MCDR可连接的rcon则不会出现此问题~~**~~，所以墙裂建议配置rcon~~
+**必须使用Rcon获取信息，请一定配置好服务器和MCDR的Rcon**
 
 # pics
 
