@@ -5,17 +5,20 @@ import time
 import os
 import shutil
 
-from mcdreforged.api.rtext import *
+from mcdreforged.api.all import *
 
 PLUGIN_METADATA = {
     'id': 'mcdrpost',
-    'version': '1.0.0',
-    'name': 'MCDRpost',  # RText component is allowed
-    'description': 'A MCDR plugin for post/teleport items',  # RText component is allowed
+    'version': '2.0.0',
+    'name': 'MCDRpost',
+    'description': {
+        'en_us': 'A MCDR plugin for post/teleport items',
+        'zh_cn': '一个用于邮寄/传送物品的MCDR插件'
+    },
     'author': 'Flyky',
     'link': 'https://github.com/Flyky/MCDRpost',
     'dependencies': {
-        'mcdreforged': '>=1.0.0',
+        'mcdreforged': '>=2.0.0-alpha.1',
         'minecraft_data_api': '*',
     }
 }
@@ -136,9 +139,21 @@ def checkOrderOnPlayerJoin(player):
     return False
 
 def getOffhandItem(server, player):
-    MCDataAPI = server.get_plugin_instance('minecraft_data_api')
-    try: 
-        offhandItem = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]')
+    # MCDataAPI = server.get_plugin_instance('minecraft_data_api')
+    # try: 
+    #     offhandItem = MCDataAPI.get_player_info(player, 'Inventory[{Slot:-106b}]')
+    #     if type(offhandItem) == dict:
+    #         return offhandItem
+    #     else:
+    #         return None
+    # except Exception as e:
+    #     server.logger.info("Error occurred during getOffhandItem" + e.__class__.__name__)
+    #     return None
+    if not server.is_rcon_running():
+        server.logger.info("Please config rcon of server correctly.")
+        return None
+    try:
+        offhandItem = server.rcon_query(f'data get entity {player} Inventory[{Slot:-106b}]')
         if type(offhandItem) == dict:
             return offhandItem
         else:
@@ -356,7 +371,7 @@ def addPlayerToList(server, info):
     server.logger.info('[MCDRpost] 已登记玩家 '+playerId)
     saveOrdersJson()
 
-def on_info(server, info):
+def on_info(server: PluginServerInterface, info: Info):
     if info.is_user:
         if info.content == Prefix:
             server.reply(info, getHelpMessage(server, info))
@@ -381,7 +396,7 @@ def on_info(server, info):
     if info.content.startswith(Prefix):
         info.cancel_send_to_server()
 
-def on_load(server, old_module):
+def on_load(server: PluginServerInterface, old):
     loadOrdersJson(server)
     server.register_help_message(Prefix, "传送/收寄副手物品")
 
