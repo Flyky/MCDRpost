@@ -6,13 +6,16 @@ import os
 
 from mcdreforged.api.all import *
 from mcdrpost.OrdersData import orders
+from mcdrpost.utils import format_time, get_offhand_item
 
 Prefix = '!!po'
-maxStorageNum = 5   # 最大存储订单量，设为-1则无限制
-saveDelay = 1
-
+MaxStorageNum = 5   # 最大存储订单量，设为-1则无限制
+SaveDelay = 1
 OrderJsonDirectory = './config/MCDRpost/'
 OrderJsonFile = OrderJsonDirectory + 'PostOrders.json'
+
+orders.set_json_path(OrderJsonFile)
+orders.set_max_storage_num(MaxStorageNum)
 
 def loadOrdersJson(logger: MCDReforgedLogger):
     if not os.path.isfile(OrderJsonFile):
@@ -20,8 +23,7 @@ def loadOrdersJson(logger: MCDReforgedLogger):
         os.makedirs(OrderJsonDirectory)
         with open(OrderJsonFile, 'w+') as f:
             f.write('{"players": [], "ids":[]}')
-
-    orders.load_json(OrderJsonFile)
+    orders.load_json(logger)
 
 
 def print_help_message(source: CommandSource):
@@ -58,6 +60,26 @@ def print_help_message(source: CommandSource):
     )
 
 
+def regularSaveOrderJson(logger: MCDReforgedLogger):
+    if len(orders.ids) % SaveDelay == 0:
+        orders.save_to_json(logger, OrderJsonFile)
+
+
+def getItem(server, player, orderid):
+    if not get_offhand_item(server, player):
+        order = orders.orders.get(orderid, -1)
+        server.execute(f'item replace entity {player} weapon.offhand with {str(order["item"])}')
+        # server.execute(f'replaceitem entity {player} weapon.offhand {str(order["item"])}')
+        server.execute(f'execute at {player} run playsound minecraft:entity.bat.takeoff player {player}')
+        orders.del_order(server.logger, orderid)
+        return True
+    else:
+        server.tell(player, '§e* 抱歉，请先将您的§6副手物品§e清空')
+        return False
+
+
+######### ########
+
 def post_item(src: InfoCommandSource, receiver: str, infomsg=""):
     sender = src.get_info().player
     pass
@@ -79,13 +101,25 @@ def cancel_order(src: InfoCommandSource):
     pass
 
 
-def checkOrderOnPlayerJoin(player):
-    for orderid in orders.ids:
-        order = orders.orders.get(str(orderid), -1)
-        if order == -1: continue
-        if order.get('receiver') == player:
-            return True
-    return False
+def add_player_to_list(src: InfoCommandSource, player_id: str):
+    if orders.check_player(player_id):
+        src.reply('§4* 该玩家已注册，请检查后再输入 \n§r使用 §7!!po ls players §r可以查看所有注册玩家列表')
+        return
+    orders.add_player(player_id)
+    src.reply(f'§e[MCDRpost] §a成功注册玩家 §b{player_id} §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
+    src.get_server().logger.info(f'[MCDRpost] 已登记玩家 {player_id}')
+    orders.save_to_json(src.get_server().logger)
+
+
+def remove_player_in_list(src: InfoCommandSource, player_id: str):
+    if not orders.check_player(player_id):
+        src.reply('§4* 该玩家未注册，无法进行删除 \n§r使用 §7!!po ls players §r可以查看所有注册玩家列表')
+        return
+    orders.players.remove(player_id)
+    src.reply(f'§e[MCDRpost] §a成功删除玩家 §b{player_id} §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
+    src.get_server().logger.info(f'[MCDRpost] 已删除登记玩家 {player_id}')
+    orders.save_to_json(src.get_server().logger)
+
 
 
 def register_command(server: PluginServerInterface):
@@ -140,12 +174,12 @@ def register_command(server: PluginServerInterface):
             Literal('player').requires(lambda src: src.has_permission_higher_than(2)).
             then(
                 Literal('add').then(
-                    Text('player_name').runs(lambda: 1)
+                    Text('player_id').runs(lambda src, ctx: add_player_to_list(src, ctx['player_id']))
                 )
             ).
             then(
                 Literal('remove').then(
-                    Text('player_name').runs(lambda: 1)
+                    Text('player_id').runs(lambda src, ctx: remove_player_in_list(src, ctx['player_id']))
                 )
             )
         )
@@ -167,14 +201,13 @@ def on_server_startup(server):
 
 def on_player_joined(server, player, info):
     flag = True
-    for id in orders.players:
-        if id == player:
-            flag = False
-            if checkOrderOnPlayerJoin(player):
-                time.sleep(3)   # 延迟 3s 后再提示，防止更多进服消息混杂而看不到提示
-                server.tell(player, "§6[MCDRpost] §e您有待查收的快件~ 命令 §7!!po rl §e查看详情")
-                server.execute(f'execute at {player} run playsound minecraft:entity.arrow.hit_player player {player}')
+    if orders.check_player(player):
+        flag = False
+        if orders.check_order_on_player_join(player):
+            time.sleep(3)   # 延迟 3s 后再提示，防止更多进服消息混杂而看不到提示
+            server.tell(player, "§6[MCDRpost] §e您有待查收的快件~ 命令 §7!!po rl §e查看详情")
+            server.execute(f'execute at {player} run playsound minecraft:entity.arrow.hit_player player {player}')
     if flag:
         orders.add_player(player)
         server.logger.info(f'[MCDRpost] 已登记玩家 {player}')
-        orders.save_to_json(server.logger, OrderJsonFile)
+        orders.save_to_json(server.logger)
