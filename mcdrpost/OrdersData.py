@@ -17,8 +17,7 @@ class OrdersData:
     def set_json_path(self, path: str):
         self.json_file_path = path
 
-    def load_json(self, logger):
-        logger.info(self.json_file_path)
+    def load_json(self):
         try:
             with open(self.json_file_path, 'r', encoding='utf-8') as f:
                 orders_dict = json.load(f)
@@ -27,8 +26,7 @@ class OrdersData:
                 self.orders = orders_dict
                 self.orders.pop('players')
                 self.orders.pop('ids')
-        except Exception as e:
-            logger.warning(e)
+        except Exception:
             return
     
     def add_player(self, player: str):
@@ -81,7 +79,7 @@ class OrdersData:
 
     def del_order(self, logger: MCDReforgedLogger, id):
         try:
-            self.orders.pop(id)
+            self.orders.pop(str(id))
             self.ids.remove(int(id))
             return True
         except Exception:

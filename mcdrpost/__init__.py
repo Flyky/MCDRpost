@@ -6,13 +6,14 @@ import os
 
 from mcdreforged.api.all import *
 from mcdrpost.OrdersData import orders
-from mcdrpost.utils import format_time, get_offhand_item
+from mcdrpost.utils import format_time, get_offhand_item, execute_replace_offhand, can_command_item
 
 Prefix = '!!po'
 MaxStorageNum = 5   # 最大存储订单量，设为-1则无限制
 SaveDelay = 1
 OrderJsonDirectory = './config/MCDRpost/'
 OrderJsonFile = OrderJsonDirectory + 'PostOrders.json'
+command_item = -2
 
 orders.set_json_path(OrderJsonFile)
 orders.set_max_storage_num(MaxStorageNum)
@@ -23,7 +24,7 @@ def loadOrdersJson(logger: MCDReforgedLogger):
         os.makedirs(OrderJsonDirectory)
         with open(OrderJsonFile, 'w+') as f:
             f.write('{"players": [], "ids":[]}')
-    orders.load_json(logger)
+    orders.load_json()
 
 
 def print_help_message(source: CommandSource):
@@ -60,16 +61,18 @@ def print_help_message(source: CommandSource):
     )
 
 
-def regularSaveOrderJson(logger: MCDReforgedLogger):
+def regular_save_order_json(logger: MCDReforgedLogger):
     if len(orders.ids) % SaveDelay == 0:
-        orders.save_to_json(logger, OrderJsonFile)
+        orders.save_to_json(logger)
 
 
-def getItem(server, player, orderid):
+def get_item(server, player, orderid):
+    global command_item
+    if command_item == -2:
+        command_item = can_command_item(server)
     if not get_offhand_item(server, player):
-        order = orders.orders.get(orderid, -1)
-        server.execute(f'item replace entity {player} weapon.offhand with {str(order["item"])}')
-        # server.execute(f'replaceitem entity {player} weapon.offhand {str(order["item"])}')
+        order = orders.orders.get(str(orderid), -1)
+        execute_replace_offhand(server, player, order.get('item'), command_item)
         server.execute(f'execute at {player} run playsound minecraft:entity.bat.takeoff player {player}')
         orders.del_order(server.logger, orderid)
         return True
@@ -78,11 +81,51 @@ def getItem(server, player, orderid):
         return False
 
 
-######### ########
+######### Features ########
 
 def post_item(src: InfoCommandSource, receiver: str, infomsg=""):
+    global command_item, MaxStorageNum
+    server = src.get_server()
     sender = src.get_info().player
-    pass
+    itemjson = get_offhand_item(server, sender)
+    postId = None
+
+    if command_item == -2:
+        command_item = can_command_item(server)
+
+    if not infomsg: infomsg="无备注信息"
+    if not orders.check_storage(sender):
+        src.reply(f'§e* 您当前存放在中转站的订单数已达到了上限:{MaxStorageNum}\n命令 §7!!po pl §e查看您在中转站内的发件订单')
+        return
+    if not orders.check_player(receiver):
+        src.reply(f'§e* 收件人 §b{receiver} §e未曾进服，不在登记玩家内，不可被发送，请检查您的输入')
+        return
+    if sender == receiver:
+        src.reply('§e* 寄件人和收件人不能为同一人~')
+        return
+    if not itemjson:
+        src.reply('§e* 副手检测不到可寄送的物品，请检查副手')
+        return
+    else:
+        item_tag = itemjson.get('tag', '')
+        item = str(itemjson.get('id')) + \
+            (json.dumps(item_tag) if len(item_tag) > 0 else '')+ ' ' + \
+            str(itemjson.get('Count', ''))
+        postId = orders.get_next_id()
+        orders.orders[postId] = {
+            'time': format_time(),
+            'sender': sender,
+            'receiver': receiver,
+            'item': item,
+            'info': infomsg
+        }
+        
+        execute_replace_offhand(server, sender, 'minecraft:air', command_item)
+        src.reply('§6* 物品存放于中转站，等待对方接收\n* 使用 §7!!po pl §6可以查看还未被查收的发件列表')
+        server.execute(f'execute at {sender} run playsound minecraft:entity.arrow.hit_player player {sender}')
+        server.tell(receiver, f'§6[MCDRpost] §e您有一件新快件，命令 §7!!po rl §e查看收件箱\n* 命令 §7!!po r {postId} §e直接收取该快件')
+        server.execute(f'execute at {receiver} run playsound minecraft:entity.arrow.shoot player {receiver}')
+        regular_save_order_json(server.logger)
 
 
 def list_outbox(src: InfoCommandSource):
@@ -97,8 +140,44 @@ def list_inbox(src: InfoCommandSource):
     pass
 
 
-def cancel_order(src: InfoCommandSource):
-    pass
+def cancel_order(src: InfoCommandSource, orderid):
+    # !!po c orderid
+    player = src.get_info().player
+    server = src.get_server()
+    try:
+        if not player == orders.orders[str(orderid)]['sender']:
+            src.reply('§e* 该订单非您寄送，您无权对其操作，请检查输入')
+            return False
+    except KeyError:
+        src.reply('§e* 未查询到该单号，请检查输入')
+        return False
+    if not get_item(server, player, orderid):
+        return False
+    server.tell(player, f'§e* 已成功取消订单 {orderid}，物品回收至副手')
+    regular_save_order_json(server.logger)
+
+
+def list_players(src: InfoCommandSource):
+    # !!po ls players
+    src.reply('§6[MCDRpost] §e可寄送的注册玩家列表：\n§r' + str(orders.get_players()))
+
+
+def list_orders(src: InfoCommandSource):
+    # !!po ls orders
+    listmsg = ''
+    for orderid in orders.ids:
+        order = orders.orders.get(str(orderid))
+        if not order:
+            continue
+        listmsg = listmsg+str(orderid)+'  | '+order.get('sender')+'  | '+order.get('receiver')+'  | '+order.get('time')+'  | '+order.get('info')+'\n    '
+    if listmsg == '':
+        src.reply('§6* 中转站内无任何快件~')
+        return
+    listmsg = '''==========================================
+ 单号    |   发件人  |   收件人  |   发件时间  |   备注信息
+{0}
+==========================================='''.format(listmsg)
+    src.reply(listmsg)
 
 
 def add_player_to_list(src: InfoCommandSource, player_id: str):
@@ -130,6 +209,7 @@ def register_command(server: PluginServerInterface):
             Literal('p').requires(lambda src: src.is_player).
             then(
                 Text('receiver').suggests(orders.get_players).
+                runs(lambda src, ctx: post_item(src, ctx['receiver'])).
                 then(
                     GreedyText('comment').
                     runs(lambda src, ctx: post_item(src, ctx['receiver'], ctx['comment']))
@@ -154,20 +234,21 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal('c').requires(lambda src: src.is_player).
+            runs(lambda src: src.reply('§e* 未输入需要取消的单号，§7!!po §e可查看帮助信息')).
             then(
                 Integer('orderid').
                 suggests(lambda src: orders.get_orderid_by_sender(src.get_info().player)).
-                runs(cancel_order)
+                runs(lambda src, ctx: cancel_order(src, ctx['orderid']))
             )
         ).
         then(
             Literal('ls').requires(lambda src: src.has_permission_higher_than(0)).
             then(
-                Literal('players').runs(lambda: 1)
+                Literal('players').runs(list_players)
             ).
             then(
                 Literal('orders').requires(lambda src: src.has_permission_higher_than(1)).
-                runs(lambda: 1)
+                runs(list_orders)
             )
         ).
         then(
@@ -196,6 +277,7 @@ def on_load(server: PluginServerInterface, old):
 
 
 def on_server_startup(server):
+    global command_item
     loadOrdersJson(server)
 
 

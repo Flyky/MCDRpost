@@ -25,3 +25,28 @@ def get_offhand_item(server: PluginServerInterface, player):
     except Exception as e:
         server.logger.info("Error occurred during getOffhandItem" + e.__class__.__name__)
         return None
+
+def execute_replace_offhand(server: PluginServerInterface, player: str, item: str, command_item=-1):
+    # command_item 是否可用item命令， -1为不可知，0为不可用（需要用replaceitem），1为可用
+    try:
+        if command_item == 1:
+            server.execute(f'item replace entity {player} weapon.offhand with {item}')
+        elif command_item == 0:
+            server.execute(f'replaceitem entity {player} weapon.offhand {item}')
+        else:
+            server.execute(f'item replace entity {player} weapon.offhand with {item}')
+            server.execute(f'replaceitem entity {player} weapon.offhand {item}')    
+    except Exception as e:
+        server.logger.warning(e)
+
+def can_command_item(server: PluginServerInterface) -> int:
+    try:
+        if server.is_rcon_running():
+            help_msg = server.rcon_query('help item replace')
+            if 'item replace' in help_msg: return 1
+            else: return 0
+        else:
+            return -1
+    except Exception as e:
+        server.logger.warning(e)
+        return -1
