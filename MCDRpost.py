@@ -186,7 +186,7 @@ def postItem(server, info):
     infomsg = "无备注信息"
     postId = None
     if not checkStorage(sender):
-        server.tell(sender, '§e* 您当前存放在中转站的订单数已达到了上限:'+str(maxStorageNum)+'\n命令 §7!!po pl §e查看您在中转站内的发件订单')
+        server.tell(sender, f'§e* 您当前存放在中转站的订单数已达到了上限:{str(maxStorageNum)}\n命令 §7!!po pl §e查看您在中转站内的发件订单')
         return
     if len(info.content.split()) >= 3:
         receiver = info.content.split()[2]
@@ -196,7 +196,7 @@ def postItem(server, info):
     if len(info.content.split()) >= 4:
         infomsg = info.content.split()[3]
     if not checkPlayer(receiver):
-        server.tell(sender, '§e* 收件人 §b'+receiver+' §e未曾进服，不在登记玩家内，不可被发送，请检查您的输入')
+        server.tell(sender, f'§e* 收件人 §b{receiver} §e未曾进服，不在登记玩家内，不可被发送，请检查您的输入')
         return
     if sender == receiver:
         server.tell(sender, '§e* 寄件人和收件人不能为同一人~')
@@ -220,9 +220,9 @@ def postItem(server, info):
         server.execute(f'item replace entity {sender} weapon.offhand with minecraft:air')
         # server.execute(f'replaceitem entity {sender} weapon.offhand minecraft:air')
         server.tell(sender, '§6* 物品存放于中转站，等待对方接收\n* 使用 §7!!po pl §6可以查看还未被查收的发件列表')
-        server.execute('execute at ' + sender + ' run playsound minecraft:entity.arrow.hit_player player ' + sender)
-        server.tell(receiver, '§6[MCDRpost] §e您有一件新快件，命令 §7!!po rl §e查看收件箱\n* 命令 §7!!po r '+postId+' §e直接收取该快件')
-        server.execute('execute at ' + receiver + ' run playsound minecraft:entity.arrow.shoot player ' + receiver)
+        server.execute(f'execute at {sender} run playsound minecraft:entity.arrow.hit_player player {sender}')
+        server.tell(receiver, f'§6[MCDRpost] §e您有一件新快件，命令 §7!!po rl §e查看收件箱\n* 命令 §7!!po r {postId} §e直接收取该快件')
+        server.execute(f'execute at {receiver} run playsound minecraft:entity.arrow.shoot player {receiver}')
         regularSaveOrderJson()
 
 def cancelOrder(server, info):
@@ -243,7 +243,7 @@ def cancelOrder(server, info):
         return False
     if not getItem(server, player, orderid):
         return False
-    server.tell(player,'§e* 已成功取消订单 '+orderid+'，物品回收至副手')
+    server.tell(player, f'§e* 已成功取消订单 {orderid}，物品回收至副手')
     regularSaveOrderJson()
 
 def receiveItem(server, info):
@@ -264,7 +264,7 @@ def receiveItem(server, info):
         return False
     if not getItem(server, player, orderid):
         return False
-    server.tell(player,'§e* 已成功收取快件 '+orderid+'，物品接收至副手')
+    server.tell(player, f'§e* 已成功收取快件 {orderid}，物品接收至副手')
     regularSaveOrderJson()
 
 def listOutbox(server, info):
@@ -348,7 +348,7 @@ def removePlayerInList(server, info):
         server.tell(info.player,'§4* 该玩家未注册，无法进行删除 \n§r使用 §7!!po ls players §r可以查看所有注册玩家列表')
         return
     orders.get('players').remove(playerId)
-    server.tell(info.player,'§e[MCDRpost] §a成功删除玩家 §b'+playerId+' §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
+    server.tell(info.player, f'§e[MCDRpost] §a成功删除玩家 §b{playerId} §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
     server.logger.info('[MCDRpost] 已删除登记玩家 '+playerId)
     saveOrdersJson()
 
@@ -368,7 +368,7 @@ def addPlayerToList(server, info):
         server.tell(info.player,'§4* 该玩家已注册，请检查后再输入 \n§r使用 §7!!po ls players §r可以查看所有注册玩家列表')
         return
     orders.get('players').append(playerId)
-    server.tell(info.player,'§e[MCDRpost] §a成功注册玩家 §b'+playerId+' §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
+    server.tell(info.player, f'§e[MCDRpost] §a成功注册玩家 §b{playerId} §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
     server.logger.info('[MCDRpost] 已登记玩家 '+playerId)
     saveOrdersJson()
 
@@ -413,7 +413,7 @@ def on_player_joined(server, player, info):
             if checkOrderOnPlayerJoin(player):
                 time.sleep(3)   # 延迟 3s 后再提示，防止更多进服消息混杂而看不到提示
                 server.tell(player, "§6[MCDRpost] §e您有待查收的快件~ 命令 §7!!po rl §e查看详情")
-                server.execute('execute at ' + player + ' run playsound minecraft:entity.arrow.hit_player player ' + player)
+                server.execute(f'execute at {player} run playsound minecraft:entity.arrow.hit_player player {player}')
     if flag:
         orders['players'].append(player)
         server.logger.info('[MCDRpost] 已登记玩家 '+player)
