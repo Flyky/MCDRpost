@@ -79,12 +79,21 @@ def cancel_order(src: InfoCommandSource):
     pass
 
 
+def checkOrderOnPlayerJoin(player):
+    for orderid in orders.ids:
+        order = orders.orders.get(str(orderid), -1)
+        if order == -1: continue
+        if order.get('receiver') == player:
+            return True
+    return False
+
+
 def register_command(server: PluginServerInterface):
     server.register_command(
         Literal(Prefix).
         runs(print_help_message).
         then(
-            Literal('p').requires(lambda src: src.isplayer).
+            Literal('p').requires(lambda src: src.is_player).
             then(
                 Text('receiver').suggests(orders.get_players).
                 then(
@@ -94,11 +103,11 @@ def register_command(server: PluginServerInterface):
             )
         ).
         then(
-            Literal('pl').requires(lambda src: src.isplayer).
+            Literal('pl').requires(lambda src: src.is_player).
             runs(list_outbox)
         ).
         then(
-            Literal('r').requires(lambda src: src.isplayer).
+            Literal('r').requires(lambda src: src.is_player).
             then(
                 Integer('orderid').
                 suggests(lambda src: orders.get_orderid_by_receiver(src.get_info().player)).
@@ -106,11 +115,11 @@ def register_command(server: PluginServerInterface):
             )
         ).
         then(
-            Literal('rl').requires(lambda src: src.isplayer).
+            Literal('rl').requires(lambda src: src.is_player).
             then(list_inbox)
         ).
         then(
-            Literal('c').requires(lambda src: src.isplayer).
+            Literal('c').requires(lambda src: src.is_player).
             then(
                 Integer('orderid').
                 suggests(lambda src: orders.get_orderid_by_sender(src.get_info().player)).
@@ -120,23 +129,23 @@ def register_command(server: PluginServerInterface):
         then(
             Literal('ls').requires(lambda src: src.has_permission_higher_than(0)).
             then(
-                Literal('players').runs()
+                Literal('players').runs(lambda: 1)
             ).
             then(
                 Literal('orders').requires(lambda src: src.has_permission_higher_than(1)).
-                runs()
+                runs(lambda: 1)
             )
         ).
         then(
             Literal('player').requires(lambda src: src.has_permission_higher_than(2)).
             then(
                 Literal('add').then(
-                    Text('player_name').runs()
+                    Text('player_name').runs(lambda: 1)
                 )
             ).
             then(
                 Literal('remove').then(
-                    Text('player_name').runs()
+                    Text('player_name').runs(lambda: 1)
                 )
             )
         )
@@ -154,3 +163,18 @@ def on_load(server: PluginServerInterface, old):
 
 def on_server_startup(server):
     loadOrdersJson(server)
+
+
+def on_player_joined(server, player, info):
+    flag = True
+    for id in orders.players:
+        if id == player:
+            flag = False
+            if checkOrderOnPlayerJoin(player):
+                time.sleep(3)   # 延迟 3s 后再提示，防止更多进服消息混杂而看不到提示
+                server.tell(player, "§6[MCDRpost] §e您有待查收的快件~ 命令 §7!!po rl §e查看详情")
+                server.execute(f'execute at {player} run playsound minecraft:entity.arrow.hit_player player {player}')
+    if flag:
+        orders.add_player(player)
+        server.logger.info(f'[MCDRpost] 已登记玩家 {player}')
+        orders.save_to_json(server.logger, OrderJsonFile)
