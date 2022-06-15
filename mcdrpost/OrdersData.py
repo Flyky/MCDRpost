@@ -4,14 +4,28 @@ class OrdersData:
     def __init__(self):
         self.players = []
         self.ids = [0]
+        self.orders = {}
     
     def load_json(self, path: str):
         try:
             with open(path) as f:
                 orders_dict = json.load(f, encoding='utf8')
                 self.players = orders_dict.get('players', [])
-                self.players = orders_dict.get('ids', [])
+                self.ids = orders_dict.get('ids', [])
+                self.orders = orders_dict
+                self.orders.pop('players')
+                self.orders.pop('ids')
         except:
             return
     
+    def get_players(self) -> list:
+        return self.players
+    
+    def get_orderid_by_receiver(self, receiver: str) -> list:
+        return [i for i in self.ids if self.orders.get(str(i), {}).get('receiver') == receiver]
+
+    def get_orderid_by_sender(self, sender: str) -> list:
+        return [i for i in self.ids if self.orders.get(str(i), {}).get('sender') == sender]
+
+
 orders = OrdersData()
