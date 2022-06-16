@@ -9,7 +9,10 @@
     "author": ["Flyky"],
     "link": "https://github.com/Flyky/MCDRpost",
     "dependencies": {
-        "mcdreforged": ">=2.0.0-alpha.1",
+        "mcdreforged": ">=2.0.1",
         "minecraft_data_api": "*"
-    }
+    },
+    "resources": [
+        "lang"
+    ]
 }

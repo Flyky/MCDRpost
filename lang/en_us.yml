@@ -23,7 +23,7 @@ mcdrpost:
   no_datafile: "Data file not found, will be automatically generated"
   clear_offhand: "§e* Sorry, Please empty your §6off-hand item§e"
   no_comment: "no_comment"
-  at_max_storage: "§e* You have reached the limit num of orders currently stored at the transfer station:{0}\nCommand §7!!po pl§e to check your sent orders"
+  at_max_storage: "§e* You have reached the limit num of orders currently stored at the transfer station: {0}\nCommand §7!!po pl§e to check your sent orders"
   no_receiver: "§e* Receiver §b{0}§e is not registered yet, please check"
   same_person: "§e* Sender and Receiver cannot be the same person~"
   check_offhand: "§e* The off-hand cannot detect the deliverable item, please check the off-hand"
@@ -40,7 +40,7 @@ mcdrpost:
 
   no_rorders: "§e* You currently have no received orders~"
   list_rorders_title: "order id  |  sender  |  send time  |   comment"
-  hint_receive: "§6Use §7!!po r [orderid]§6 to receive the item§r"
+  hint_order_receive: "§6Use §7!!po r [orderid]§6 to receive the item§r"
 
   not_sender: "§e* You are not the sender of this order and have no right to operate on it, please check"
   cancel_success: "§e* Order {0} cancelled successfully, items are recovered to the off-hand"
