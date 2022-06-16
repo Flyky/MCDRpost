@@ -6,7 +6,7 @@ from mcdreforged.utils.logger import MCDReforgedLogger
 class OrdersData:
     def __init__(self):
         self.players = []
-        self.ids = [0]
+        self.ids = []
         self.orders = {}
         self.max_storage_num = 5
         self.json_file_path = ''

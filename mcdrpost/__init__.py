@@ -21,7 +21,8 @@ orders.set_max_storage_num(MaxStorageNum)
 def loadOrdersJson(logger: MCDReforgedLogger):
     if not os.path.isfile(OrderJsonFile):
         logger.info('未找到数据文件，自动生成')
-        os.makedirs(OrderJsonDirectory)
+        if not os.path.exists(OrderJsonDirectory):
+            os.makedirs(OrderJsonDirectory)
         with open(OrderJsonFile, 'w+') as f:
             f.write('{"players": [], "ids":[]}')
     orders.load_json()
@@ -289,7 +290,7 @@ def register_command(server: PluginServerInterface):
         then(
             Literal('rl').requires(lambda src: src.is_player).
             on_error(RequirementNotMet, lambda src: required_errmsg(src, 1), handled=True).
-            then(list_inbox)
+            runs(list_inbox)
         ).
         then(
             Literal('c').requires(lambda src: src.is_player).
