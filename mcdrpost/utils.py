@@ -40,6 +40,8 @@ def execute_replace_offhand(server: PluginServerInterface, player: str, item: st
         server.logger.warning(e)
 
 def can_command_item(server: PluginServerInterface) -> int:
+    # 判断是否可用item命令， -1为不可知，0为不可用（需要用replaceitem），1为可用
+    # rcon发送help item replace，若可用item命令则会返回相应帮助信息(信息内包含item replace)
     try:
         if server.is_rcon_running():
             help_msg = server.rcon_query('help item replace')

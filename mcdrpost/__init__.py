@@ -81,7 +81,7 @@ def get_item(server, player, orderid):
         return False
 
 
-######### Features ########
+######### Features #########
 
 def post_item(src: InfoCommandSource, receiver: str, infomsg=""):
     global command_item, MaxStorageNum
@@ -129,15 +129,62 @@ def post_item(src: InfoCommandSource, receiver: str, infomsg=""):
 
 
 def list_outbox(src: InfoCommandSource):
-    pass
+    player = src.get_info().player
+    listmsg = ''
+    for orderid in orders.ids:
+        order = orders.orders.get(str(orderid))
+        if not order:
+            continue
+        if order.get('sender') == player:
+            listmsg = listmsg+str(orderid)+'  | '+order.get('receiver')+'  | '+order.get('time')+'  | '+order.get('info')+'\n    '
+    if listmsg == '':
+        src.reply('§6* 您当前没有快件订单在中转站~')
+        return
+    listmsg = '''==========================================
+    单号    |   收件人  |   发件时间  |   备注信息
+    {0}
+    -------------------------------------------
+    §6使用命令 §7!!po c [单号] §6取消快件§r
+==========================================='''.format(listmsg)
+    src.reply(listmsg)
 
 
-def receive_item(src: InfoCommandSource):
-    pass
+def receive_item(src: InfoCommandSource, orderid):
+    # !!po c orderid
+    player = src.get_info().player
+    server = src.get_server()
+    try:
+        if not player == orders.orders[str(orderid)]['receiver']:
+            src.reply('§e* 您非该订单收件人，无权对其操作，请检查输入')
+            return False
+    except KeyError:
+        src.reply('§e* 未查询到该单号，请检查输入')
+        return False
+    if not get_item(server, player, orderid):
+        return False
+    src.reply(f'§e* 已成功收取快件 {orderid}，物品接收至副手')
+    regular_save_order_json(server.logger)
 
 
 def list_inbox(src: InfoCommandSource):
-    pass
+    player = src.get_info().player
+    listmsg = ''
+    for orderid in orders.ids:
+        order = orders.orders.get(str(orderid))
+        if not order:
+            continue
+        if order.get('receiver') == player:
+            listmsg = listmsg+str(orderid)+'  | '+order.get('sender')+'  | '+order.get('time')+'  | '+order.get('info')+'\n    '
+    if listmsg == '':
+        src.reply('§e* 您当前没有待收快件~')
+        return
+    listmsg = '''==========================================
+    单号    |   发件人  |   发件时间  |   备注信息
+    {0}
+    -------------------------------------------
+    §6使用命令 §7!!po r [单号] §6来接收快件物品§r
+==========================================='''.format(listmsg)
+    src.reply(listmsg)
 
 
 def cancel_order(src: InfoCommandSource, orderid):
@@ -153,7 +200,7 @@ def cancel_order(src: InfoCommandSource, orderid):
         return False
     if not get_item(server, player, orderid):
         return False
-    server.tell(player, f'§e* 已成功取消订单 {orderid}，物品回收至副手')
+    src.reply(f'§e* 已成功取消订单 {orderid}，物品回收至副手')
     regular_save_order_json(server.logger)
 
 
@@ -222,6 +269,7 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal('r').requires(lambda src: src.is_player).
+            runs(lambda src: src.reply('§e* 未输入收件单号，§7!!po §e可查看帮助信息')).
             then(
                 Integer('orderid').
                 suggests(lambda src: orders.get_orderid_by_receiver(src.get_info().player)).
@@ -238,7 +286,7 @@ def register_command(server: PluginServerInterface):
             then(
                 Integer('orderid').
                 suggests(lambda src: orders.get_orderid_by_sender(src.get_info().player)).
-                runs(lambda src, ctx: cancel_order(src, ctx['orderid']))
+                runs(lambda src, ctx: receive_item(src, ctx['orderid']))
             )
         ).
         then(
