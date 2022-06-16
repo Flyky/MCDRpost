@@ -110,7 +110,7 @@ def post_item(src: InfoCommandSource, receiver: str, infomsg=""):
     else:
         item_tag = itemjson.get('tag', '')
         item = str(itemjson.get('id')) + \
-            (json.dumps(item_tag) if len(item_tag) > 0 else '')+ ' ' + \
+            (json.dumps(item_tag, ensure_ascii=False) if len(item_tag) > 0 else '')+ ' ' + \
             str(itemjson.get('Count', ''))
         postId = orders.get_next_id()
         orders.orders[postId] = {
