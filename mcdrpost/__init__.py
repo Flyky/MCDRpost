@@ -20,7 +20,7 @@ orders.set_max_storage_num(MaxStorageNum)
 
 def loadOrdersJson(logger: MCDReforgedLogger):
     if not os.path.isfile(OrderJsonFile):
-        logger.info('[MCDRpost] 未找到数据文件，自动生成')
+        logger.info('未找到数据文件，自动生成')
         os.makedirs(OrderJsonDirectory)
         with open(OrderJsonFile, 'w+') as f:
             f.write('{"players": [], "ids":[]}')
@@ -51,7 +51,7 @@ def print_help_message(source: CommandSource):
             RText(Prefix+' p §e[<收件人id>] §b[<备注>]', RColor.gray).c(RAction.suggest_command, "!!po p ").h('点击写入聊天栏'),RText(' | 将副手物品发送给§e[收件人]§r。§b[备注]§r为可选项\n'),
             RText(Prefix+' rl', RColor.gray).c(RAction.suggest_command, "!!po rl").h('点击写入聊天栏'),RText(' | 列出收件列表\n'),
             RText(Prefix+' r §6[<单号>]', RColor.gray).c(RAction.suggest_command, "!!po r ").h('点击写入聊天栏'),RText(' | 确认收取该单号的物品到副手(收取前将副手清空)\n'),
-            RText(Prefix+' pl', RColor.gray).c(RAction.suggest_command, "!!po pl").h('点击写入聊天栏'),RText(' | 列出收件列表\n'),
+            RText(Prefix+' pl', RColor.gray).c(RAction.suggest_command, "!!po pl").h('点击写入聊天栏'),RText(' | 列出发件列表\n'),
             RText(Prefix+' c §6[<单号>]', RColor.gray).c(RAction.suggest_command, "!!po c ").h('点击写入聊天栏'),RText(' | 取消传送物品(收件人未收件前)，该单号物品退回到副手(取消前请将副手清空)\n'),
             RText(Prefix+' ls players', RColor.gray).c(RAction.suggest_command, "!!po ls players").h('点击写入聊天栏'),RText(' | 查看可被寄送的注册玩家列表\n'),
             msgs_on_helper,
@@ -233,7 +233,7 @@ def add_player_to_list(src: InfoCommandSource, player_id: str):
         return
     orders.add_player(player_id)
     src.reply(f'§e[MCDRpost] §a成功注册玩家 §b{player_id} §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
-    src.get_server().logger.info(f'[MCDRpost] 已登记玩家 {player_id}')
+    src.get_server().logger.info(f'已登记玩家 {player_id}')
     orders.save_to_json(src.get_server().logger)
 
 
@@ -243,18 +243,25 @@ def remove_player_in_list(src: InfoCommandSource, player_id: str):
         return
     orders.players.remove(player_id)
     src.reply(f'§e[MCDRpost] §a成功删除玩家 §b{player_id} §a,使用 §7!!po ls players §a可以查看所有注册玩家列表')
-    src.get_server().logger.info(f'[MCDRpost] 已删除登记玩家 {player_id}')
+    src.get_server().logger.info(f'已删除登记玩家 {player_id}')
     orders.save_to_json(src.get_server().logger)
 
 
 
 def register_command(server: PluginServerInterface):
+    def required_errmsg(src: CommandSource, id: int):
+        if id == 1:
+            src.reply('§c* 该命令仅供玩家使用')
+        elif id == 2:
+            src.reply('§c* 抱歉，您没有权限使用该命令')
+
     server.register_command(
         Literal(Prefix).
         runs(print_help_message).
         then(
             Literal('p').requires(lambda src: src.is_player).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 1), handled=True).
+            runs(lambda src: src.reply('§e* 未输入收件人，§7!!po §e可查看帮助信息')).
             then(
                 Text('receiver').suggests(orders.get_players).
                 runs(lambda src, ctx: post_item(src, ctx['receiver'])).
@@ -266,12 +273,12 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal('pl').requires(lambda src: src.is_player).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 1), handled=True).
             runs(list_outbox)
         ).
         then(
             Literal('r').requires(lambda src: src.is_player).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 1), handled=True).
             runs(lambda src: src.reply('§e* 未输入收件单号，§7!!po §e可查看帮助信息')).
             then(
                 Integer('orderid').
@@ -281,12 +288,12 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal('rl').requires(lambda src: src.is_player).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 1), handled=True).
             then(list_inbox)
         ).
         then(
             Literal('c').requires(lambda src: src.is_player).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 1), handled=True).
             runs(lambda src: src.reply('§e* 未输入需要取消的单号，§7!!po §e可查看帮助信息')).
             then(
                 Integer('orderid').
@@ -296,20 +303,20 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal('ls').requires(lambda src: src.has_permission_higher_than(0)).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 抱歉，您没有权限使用该命令'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 2), handled=True).
             runs(lambda src: src.reply('§e* 输入命令不完整，§7!!po §e可查看帮助信息')).
             then(
                 Literal('players').runs(list_players)
             ).
             then(
                 Literal('orders').requires(lambda src: src.has_permission_higher_than(1)).
-                on_error(RequirementNotMet, lambda src: src.reply('§c* 抱歉，您没有权限使用该命令'), handled=True).
+                on_error(RequirementNotMet, lambda src: required_errmsg(src, 2), handled=True).
                 runs(list_orders)
             )
         ).
         then(
             Literal('player').requires(lambda src: src.has_permission_higher_than(2)).
-            on_error(RequirementNotMet, lambda src: src.reply('§c* 抱歉，您没有权限使用该命令'), handled=True).
+            on_error(RequirementNotMet, lambda src: required_errmsg(src, 2), handled=True).
             then(
                 Literal('add').then(
                     Text('player_id').runs(lambda src, ctx: add_player_to_list(src, ctx['player_id']))
@@ -348,5 +355,5 @@ def on_player_joined(server, player, info):
             server.execute(f'execute at {player} run playsound minecraft:entity.arrow.hit_player player {player}')
     if flag:
         orders.add_player(player)
-        server.logger.info(f'[MCDRpost] 已登记玩家 {player}')
+        server.logger.info(f'已登记玩家 {player}')
         orders.save_to_json(server.logger)
