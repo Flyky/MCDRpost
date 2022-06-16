@@ -317,14 +317,21 @@ def register_command(server: PluginServerInterface):
         then(
             Literal('player').requires(lambda src: src.has_permission_higher_than(2)).
             on_error(RequirementNotMet, lambda src: required_errmsg(src, 2), handled=True).
+            runs(lambda src: src.reply('§e* 输入命令不完整，§7!!po §e可查看帮助信息')).
             then(
-                Literal('add').then(
+                Literal('add').
+                runs(lambda src: src.reply('§e* 输入命令不完整，§7!!po §e可查看帮助信息')).
+                then(
                     Text('player_id').runs(lambda src, ctx: add_player_to_list(src, ctx['player_id']))
                 )
             ).
             then(
-                Literal('remove').then(
-                    Text('player_id').runs(lambda src, ctx: remove_player_in_list(src, ctx['player_id']))
+                Literal('remove').
+                runs(lambda src: src.reply('§e* 输入命令不完整，§7!!po §e可查看帮助信息')).
+                then(
+                    Text('player_id').
+                    suggests(lambda src: orders.get_players()).
+                    runs(lambda src, ctx: remove_player_in_list(src, ctx['player_id']))
                 )
             )
         )

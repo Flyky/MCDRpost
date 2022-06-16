@@ -93,7 +93,7 @@ class OrdersData:
         try:
             with open(self.json_file_path, 'w+') as f:
                 json.dump(tmp_orders, f, indent=2)
-            logger.info("[MCDRpost] Saved OrderJsonFile")
+            logger.info("Saved OrderJsonFile")
         except:
             return
 
