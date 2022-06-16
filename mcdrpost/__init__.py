@@ -254,6 +254,7 @@ def register_command(server: PluginServerInterface):
         runs(print_help_message).
         then(
             Literal('p').requires(lambda src: src.is_player).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
             then(
                 Text('receiver').suggests(orders.get_players).
                 runs(lambda src, ctx: post_item(src, ctx['receiver'])).
@@ -265,42 +266,50 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal('pl').requires(lambda src: src.is_player).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
             runs(list_outbox)
         ).
         then(
             Literal('r').requires(lambda src: src.is_player).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
             runs(lambda src: src.reply('§e* 未输入收件单号，§7!!po §e可查看帮助信息')).
             then(
                 Integer('orderid').
                 suggests(lambda src: orders.get_orderid_by_receiver(src.get_info().player)).
-                runs(receive_item)
-            )
-        ).
-        then(
-            Literal('rl').requires(lambda src: src.is_player).
-            then(list_inbox)
-        ).
-        then(
-            Literal('c').requires(lambda src: src.is_player).
-            runs(lambda src: src.reply('§e* 未输入需要取消的单号，§7!!po §e可查看帮助信息')).
-            then(
-                Integer('orderid').
-                suggests(lambda src: orders.get_orderid_by_sender(src.get_info().player)).
                 runs(lambda src, ctx: receive_item(src, ctx['orderid']))
             )
         ).
         then(
+            Literal('rl').requires(lambda src: src.is_player).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            then(list_inbox)
+        ).
+        then(
+            Literal('c').requires(lambda src: src.is_player).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 该命令仅供玩家使用'), handled=True).
+            runs(lambda src: src.reply('§e* 未输入需要取消的单号，§7!!po §e可查看帮助信息')).
+            then(
+                Integer('orderid').
+                suggests(lambda src: orders.get_orderid_by_sender(src.get_info().player)).
+                runs(lambda src, ctx: cancel_order(src, ctx['orderid']))
+            )
+        ).
+        then(
             Literal('ls').requires(lambda src: src.has_permission_higher_than(0)).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 抱歉，您没有权限使用该命令'), handled=True).
+            runs(lambda src: src.reply('§e* 输入命令不完整，§7!!po §e可查看帮助信息')).
             then(
                 Literal('players').runs(list_players)
             ).
             then(
                 Literal('orders').requires(lambda src: src.has_permission_higher_than(1)).
+                on_error(RequirementNotMet, lambda src: src.reply('§c* 抱歉，您没有权限使用该命令'), handled=True).
                 runs(list_orders)
             )
         ).
         then(
             Literal('player').requires(lambda src: src.has_permission_higher_than(2)).
+            on_error(RequirementNotMet, lambda src: src.reply('§c* 抱歉，您没有权限使用该命令'), handled=True).
             then(
                 Literal('add').then(
                     Text('player_id').runs(lambda src, ctx: add_player_to_list(src, ctx['player_id']))
