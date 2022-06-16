@@ -23,7 +23,7 @@ mcdrpost:
   no_datafile: "未找到数据文件，自动生成"
   clear_offhand: "§e* 抱歉，请先将您的§6副手物品§e清空"
   no_comment: "无备注信息"
-  at_max_storage: "§e* 您当前存放在中转站的订单数已达到了上限:{0}\n命令 §7!!po pl §e查看您在中转站内的发件订单"
+  at_max_storage: "§e* 您当前存放在中转站的订单数已达到了上限: {0}\n命令 §7!!po pl §e查看您在中转站内的发件订单"
   no_receiver: "§e* 收件人 §b{0} §e未曾进服，不在登记玩家内，不可被发送，请检查您的输入"
   same_person: "§e* 寄件人和收件人不能为同一人~"
   check_offhand: "§e* 副手检测不到可寄送的物品，请检查副手"
@@ -40,7 +40,7 @@ mcdrpost:
 
   no_rorders: "§e* 您当前没有待收快件~"
   list_rorders_title: "单号    |   发件人  |   发件时间  |   备注信息"
-  hint_receive: "§6使用命令 §7!!po r [单号] §6来接收快件物品§r"
+  hint_order_receive: "§6使用命令 §7!!po r [单号] §6来接收快件物品§r"
 
   not_sender: "§e* 该订单非您寄送，您无权对其操作，请检查输入"
   cancel_success: "§e* 已成功取消订单 {0}，物品回收至副手"

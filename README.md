@@ -9,7 +9,7 @@ A MCDR plugin for post/teleport items
 
 # Install
 
-将`MCDRpost.py`放入plugins目录下重载插件即可  
+将`MCDRpost.mcdr`放入plugins目录下重载插件即可  
 **当前必须使用Rcon获取信息，请一定配置好服务器和MCDR的Rcon**  
 *MCDRpost(ver1.0.0+)依赖[Minecraft Data API插件](https://github.com/MCDReforged/MinecraftDataAPI)，请先安装[Minecraft Data API插件](https://github.com/MCDReforged/MinecraftDataAPI)*  
 *旧版本依赖[PlayerInfoAPI插件](https://github.com/TISUnion/PlayerInfoAPI)*  

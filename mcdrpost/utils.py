@@ -52,3 +52,8 @@ def can_command_item(server: PluginServerInterface) -> int:
     except Exception as e:
         server.logger.warning(e)
         return -1
+
+
+def _tr(tag: str, *args):
+    _str = PluginServerInterface.get_instance().tr(f'mcdrpost.{tag}', *args)
+    return _str

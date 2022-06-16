@@ -6,7 +6,7 @@ from mcdreforged.utils.logger import MCDReforgedLogger
 class OrdersData:
     def __init__(self):
         self.players = []
-        self.ids = [0]
+        self.ids = []
         self.orders = {}
         self.max_storage_num = 5
         self.json_file_path = ''
@@ -91,8 +91,8 @@ class OrdersData:
         tmp_orders['players'] = self.players
         tmp_orders['ids'] = self.ids
         try:
-            with open(self.json_file_path, 'w+') as f:
-                json.dump(tmp_orders, f, indent=2)
+            with open(self.json_file_path, 'w+', encoding='utf-8') as f:
+                json.dump(tmp_orders, f, indent=2, ensure_ascii=False)
             logger.info("Saved OrderJsonFile")
         except:
             return
