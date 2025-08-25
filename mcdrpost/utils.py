@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 
-from mcdreforged.plugin.server_interface import PluginServerInterface
+from mcdreforged.api.types import PluginServerInterface
 
 def format_time():
 	return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
